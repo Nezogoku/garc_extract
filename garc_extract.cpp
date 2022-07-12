@@ -33,6 +33,7 @@ using std::remove;
 
 #define XUI_ 0x58554900
 #define TIMP 0x54494D50
+#define TIPM 0x01000100
 
 
 bool hasLog = false;
@@ -60,7 +61,7 @@ bool fileExists(string fName) {
 }
 
 
-int extractTIMP(ofstream &extraction_log, ifstream &file, int secdex, string name = "") {
+int extractTIMP(ofstream &extraction_log, ifstream &file, int secdex, string name) {
     string timpName = (name == "") ? "unknown_timp_" : name;
     static int iter = 0;
     uint32_t chunk;
@@ -68,13 +69,15 @@ int extractTIMP(ofstream &extraction_log, ifstream &file, int secdex, string nam
 
     file.seekg(secdex);
     file.read((char*)(&chunk), sizeof(uint32_t));
-    if (htonl(chunk) != TIMP) return 0x00;
+    if (htonl(chunk) != TIMP) return 0x01;
 
     file.seekg(secdex + 0x04);
     file.read((char*)(&chunk), sizeof(uint32_t));
-    if (htonl(chunk) != 0x01000100) return 0x00;
+    if (htonl(chunk) != TIPM) return 0x04;
 
-    if (name == "") timpName += to_string(iter++) + ".tip";
+    if (name == "") timpName += to_string(iter++);
+    timpName += ".tip";
+
     if (fileExists(timpName)) return 0x04;
 
 
@@ -100,10 +103,12 @@ int extractTIMP(ofstream &extraction_log, ifstream &file, int secdex, string nam
     file.read((char*)(&px_data), sizeof(uint32_t));
 
 
-    pal_colors = (pal_data != 0x00) ? (px_data - 0x30) / 0x04 : pal_data;
+    if (pal_data != 0x00) pal_colors = (px_data - 0x30) / 0x04;
+    else pal_colors = pal_data;
 
     switch(pal_colors) {
         case 0:
+        case 16:
             chunk_w = 4;
             chunk_h = 8;
             break;
@@ -124,8 +129,8 @@ int extractTIMP(ofstream &extraction_log, ifstream &file, int secdex, string nam
             break;
 
         default:
-            chunk_w = 0;
-            chunk_h = 0;
+            chunk_w = 4;
+            chunk_h = 8;
             break;
     }
 
@@ -309,6 +314,7 @@ int fromGARC(ofstream &extraction_log, ifstream &file, int secdex) {
 
 
     if (hasLog) cout << numFiles << " files discovered" << endl;
+    if (hasLog) extraction_log << "\tOffset: 0x" << std::hex << secdex << std::dec << "\n";
     if (hasLog) extraction_log << "\t" + to_string(numFiles) + " file descriptions in current archive\n";
     if (hasLog) extraction_log << "\t" + to_string(numNames) + " file names in current archive\n";
     if (hasLog) extraction_log << "\t" + to_string(numData) + " file data in current archive\n";
@@ -322,7 +328,7 @@ int fromGARC(ofstream &extraction_log, ifstream &file, int secdex) {
         // Get extension of file being extracted
         file.seekg(workAddr);
         string temp_ext = "";
-        while(true) {
+        while(temp_ext.length() < 4) {
             file.get(buff);
             if (buff == 0x00) break;
             temp_ext += buff;
@@ -395,7 +401,7 @@ void searchGARC(string garc_filename) {
 
     char buff;
 
-    uint32_t sizeofsect = 0x0,
+    uint32_t sizeofsect = 0x00,
              index = sizeofsect;
 
     int num_garc = 0;
@@ -480,7 +486,7 @@ void searchGARC(string garc_filename) {
         }
         else if (htonl(chunk) == TIMP) {
             if (hasLog) cout << "\n" << (char*)(&chunk) << endl;
-            sizeofsect = extractTIMP(extraction_log, file, index);
+            sizeofsect = extractTIMP(extraction_log, file, index, "");
             if (sizeofsect > 0) {
                 index += sizeofsect;
             }
