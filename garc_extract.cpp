@@ -458,7 +458,7 @@ void searchGARC(string garc_filename) {
             else {
                 remove((extracted_folder + garc_index).c_str());
                 num_garc -= 1;
-                index += 0x20;
+                index += 0x04;
             }
             continue;
         }
@@ -487,7 +487,7 @@ void searchGARC(string garc_filename) {
             continue;
         }
         else {
-            index += 0x04;
+            index += 0x01;
         }
 
         if (hasLog && index % 0x500 == 0) cout << '.' << endl;
