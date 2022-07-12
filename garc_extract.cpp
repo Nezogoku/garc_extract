@@ -108,11 +108,11 @@ int extractTIMP(ofstream &extraction_log, ifstream &file, int secdex, string nam
 
     switch(pal_colors) {
         case 0:
-        case 16:
             chunk_w = 4;
             chunk_h = 8;
             break;
 
+        case 16:
         case 32:
         case 48:
         case 96:
