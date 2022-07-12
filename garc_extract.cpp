@@ -393,6 +393,8 @@ void searchGARC(string garc_filename) {
     string garc_index = "";
     string log_file = "";
 
+    char buff;
+
     uint32_t sizeofsect = 0x0,
              index = sizeofsect;
 
@@ -426,7 +428,7 @@ void searchGARC(string garc_filename) {
     if (hasLog) cout << "Extracting from \"" << garc_filename << "\"" << endl;
     if (hasLog) extraction_log << "Files in " + garc_filename + ":\n";
 
-    while (!file.eof()) {
+    while (file.get(buff)) {
         uint32_t chunk;
 
         garc_index = "000";
