@@ -67,11 +67,11 @@ int extractTIMP(ofstream &extraction_log, ifstream &file, int secdex, string nam
 
 
     file.seekg(secdex);
-    file.read(reinterpret_cast<char*>(&chunk), sizeof(uint32_t));
+    file.read((char*)(&chunk), sizeof(uint32_t));
     if (htonl(chunk) != TIMP) return 0x00;
 
     file.seekg(secdex + 0x04);
-    file.read(reinterpret_cast<char*>(&chunk), sizeof(uint32_t));
+    file.read((char*)(&chunk), sizeof(uint32_t));
     if (htonl(chunk) != 0x01000100) return 0x00;
 
     if (name == "") timpName += to_string(iter++) + ".tip";
@@ -88,16 +88,16 @@ int extractTIMP(ofstream &extraction_log, ifstream &file, int secdex, string nam
 
 
     file.seekg(secdex + 0x12);
-    file.read(reinterpret_cast<char*>(&width), sizeof(uint16_t));
+    file.read((char*)(&width), sizeof(uint16_t));
 
     file.seekg(secdex + 0x14);
-    file.read(reinterpret_cast<char*>(&height), sizeof(uint16_t));
+    file.read((char*)(&height), sizeof(uint16_t));
 
     file.seekg(secdex + 0x20);
-    file.read(reinterpret_cast<char*>(&pal_data), sizeof(uint32_t));
+    file.read((char*)(&pal_data), sizeof(uint32_t));
 
     file.seekg(secdex + 0x24);
-    file.read(reinterpret_cast<char*>(&px_data), sizeof(uint32_t));
+    file.read((char*)(&px_data), sizeof(uint32_t));
 
 
     pal_colors = (pal_data != 0x00) ? (px_data - 0x30) / 0x04 : pal_data;
@@ -165,7 +165,7 @@ int timpFromXUI(ofstream &extraction_log, ifstream &file, int secdex) {
     uint32_t nameSize, chunk;
 
     file.seekg(secdex + 0x08);
-    file.read(reinterpret_cast<char*>(&nameSize), sizeof(uint32_t));
+    file.read((char*)(&nameSize), sizeof(uint32_t));
 
     int tempdex = 0x14;
 
@@ -188,7 +188,7 @@ int timpFromXUI(ofstream &extraction_log, ifstream &file, int secdex) {
     tempdex = 0x0;
     while (tempdex < 0x60) {
         file.seekg(secdex + nameSize + tempdex++);
-        file.read(reinterpret_cast<char*>(&chunk), sizeof(uint32_t));
+        file.read((char*)(&chunk), sizeof(uint32_t));
 
         if (htonl(chunk) == TIMP) {
             timpFound = true;
@@ -208,11 +208,11 @@ int extractSGXD(ofstream &extraction_log, ifstream &file, int secdex) {
     uint32_t data_length;                                                       // Length of data + 2147483648 (0x80000000) bytes, zero-padded
 
     file.seekg(secdex + 0x04);
-    file.read(reinterpret_cast<char*>(&name_offset), sizeof(uint32_t));
+    file.read((char*)(&name_offset), sizeof(uint32_t));
     file.seekg(secdex + 0x08);
-    file.read(reinterpret_cast<char*>(&data_offset), sizeof(uint32_t));
+    file.read((char*)(&data_offset), sizeof(uint32_t));
     file.seekg(secdex + 0x0C);
-    file.read(reinterpret_cast<char*>(&data_length), sizeof(uint32_t));
+    file.read((char*)(&data_length), sizeof(uint32_t));
 
     file.seekg(secdex + name_offset);
     while(true) {
@@ -273,38 +273,38 @@ int fromGARC(ofstream &extraction_log, ifstream &file, int secdex) {
 
 
     file.seekg(secdex + 0x14);
-    file.read(reinterpret_cast<char*>(&cfileAddr), sizeof(uint32_t));
+    file.read((char*)(&cfileAddr), sizeof(uint32_t));
 
     file.seekg(secdex + cfileAddr + 0x04);
-    file.read(reinterpret_cast<char*>(&cnameAddr), sizeof(uint32_t));
+    file.read((char*)(&cnameAddr), sizeof(uint32_t));
     file.seekg(secdex + cfileAddr + 0x08);
-    file.read(reinterpret_cast<char*>(&numFiles), sizeof(uint32_t));
+    file.read((char*)(&numFiles), sizeof(uint32_t));
     file.seekg(secdex + cfileAddr + 0x0C);
-    file.read(reinterpret_cast<char*>(&cfileSize), sizeof(uint32_t));
+    file.read((char*)(&cfileSize), sizeof(uint32_t));
     file.seekg(secdex + cfileAddr + 0x10);
-    file.read(reinterpret_cast<char*>(&cfileStart), sizeof(uint32_t));
+    file.read((char*)(&cfileStart), sizeof(uint32_t));
 
     file.seekg(secdex + cnameAddr + 0x04);
-    file.read(reinterpret_cast<char*>(&cdataAddr), sizeof(uint32_t));
+    file.read((char*)(&cdataAddr), sizeof(uint32_t));
     file.seekg(secdex + cnameAddr + 0x08);
-    file.read(reinterpret_cast<char*>(&numNames), sizeof(uint32_t));
+    file.read((char*)(&numNames), sizeof(uint32_t));
     file.seekg(secdex + cnameAddr + 0x0C);
-    file.read(reinterpret_cast<char*>(&cnameSize), sizeof(uint32_t));
+    file.read((char*)(&cnameSize), sizeof(uint32_t));
     file.seekg(secdex + cnameAddr + 0x10);
-    file.read(reinterpret_cast<char*>(&cnameStart), sizeof(uint32_t));
+    file.read((char*)(&cnameStart), sizeof(uint32_t));
 
     file.seekg(secdex + cdataAddr + 0x04);
-    file.read(reinterpret_cast<char*>(&termAddr), sizeof(uint32_t));
+    file.read((char*)(&termAddr), sizeof(uint32_t));
     file.seekg(secdex + cdataAddr + 0x08);
-    file.read(reinterpret_cast<char*>(&numData), sizeof(uint32_t));
+    file.read((char*)(&numData), sizeof(uint32_t));
     file.seekg(secdex + cdataAddr + 0x0C);
-    file.read(reinterpret_cast<char*>(&cdataSize), sizeof(uint32_t));
+    file.read((char*)(&cdataSize), sizeof(uint32_t));
     file.seekg(secdex + cdataAddr + 0x10);
-    file.read(reinterpret_cast<char*>(&cdataStart), sizeof(uint32_t));
+    file.read((char*)(&cdataStart), sizeof(uint32_t));
 
 
     file.seekg(secdex + cfileAddr);
-    file.read(reinterpret_cast<char*>(&chunk), sizeof(uint32_t));
+    file.read((char*)(&chunk), sizeof(uint32_t));
     if (htonl(chunk) != FILE) return 0x00;
 
 
@@ -332,19 +332,19 @@ int fromGARC(ofstream &extraction_log, ifstream &file, int secdex) {
         // Get size of file being extracted (32 bit le)
         file.seekg(workAddr);
         uint32_t temp_size;
-        file.read(reinterpret_cast<char*>(&temp_size), sizeof(uint32_t));
+        file.read((char*)(&temp_size), sizeof(uint32_t));
         workAddr += 0x04;
 
         // Get location of file being extracted (32 bit le)
         file.seekg(workAddr);
         uint32_t temp_data_addr;
-        file.read(reinterpret_cast<char*>(&temp_data_addr), sizeof(uint32_t));
+        file.read((char*)(&temp_data_addr), sizeof(uint32_t));
         workAddr += 0x04;
 
         // Get location of name of file being extracted (32 bit le)
         file.seekg(workAddr);
         uint32_t temp_name_addr;
-        file.read(reinterpret_cast<char*>(&temp_name_addr), sizeof(uint32_t));
+        file.read((char*)(&temp_name_addr), sizeof(uint32_t));
         workAddr += 0x0C;
 
 
@@ -437,7 +437,7 @@ void searchGARC(string garc_filename) {
         garc_index = "_" + garc_index;
 
         file.seekg(index);
-        file.read(reinterpret_cast<char*>(&chunk), sizeof(uint32_t));
+        file.read((char*)(&chunk), sizeof(uint32_t));
 
         if (htonl(chunk) == GARC) {
             if (hasLog) cout << "\n" << (char*)(&chunk) << endl;
