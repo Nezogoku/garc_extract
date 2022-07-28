@@ -551,6 +551,9 @@ int fromGARC(ofstream &extraction_log, ifstream &file, int secdex, string name) 
     return termAddr;
 }
 
+//More code from that owocek person
+//Would this be considered decryption or decoding?
+//I assumed these were basically zip files using some algorithm but...
 int DecryptGPRS(ofstream &extraction_log, ifstream &section, int index, string name) {
     if (hasLog) extraction_log << "\tGPRS\n";
     if (hasLog) cout << "GPRS" << endl;
