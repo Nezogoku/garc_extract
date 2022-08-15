@@ -39,13 +39,17 @@ void searchGARC(vector<lbaSpec> table, string garc_filename, bool isDebug, bool 
     string log_file = "";
 
     bool hasTable = (table.empty()) ? false : true;
-    if (hasTable) cout << "This binary file has " << table.size() << " files" << endl;
 
     uint32_t sizeofsect = 0x00,
-             index = sizeofsect,
+             index = 0x00,
              lbns = table.size(),
              lbni = 0;
 
+    if (hasTable) {
+        while (table[lbni].file_name == "FILE_NAME") lbni += 1;
+    }
+
+    if (hasTable) cout << "This binary file has " << (table.size() - lbni) << " files" << endl;
     extracted_folder = garc_filename.substr(0, garc_filename.find_last_of("\\/") + 1);
 
     _chdir(extracted_folder.c_str());
