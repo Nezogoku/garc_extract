@@ -17,6 +17,8 @@ using std::remove;
 
 
 int DecryptGPRS(ofstream &extraction_log, ifstream &section, bool isDebug, bool hasLog, int index, int seclen, string name) {
+    if (index < 0x00 || seclen < 0) return 0x01;
+    
     if (hasLog) extraction_log << "\tGPRS\n";
     if (isDebug) cout << "GPRS" << endl;
 
