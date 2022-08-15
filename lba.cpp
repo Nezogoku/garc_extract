@@ -41,26 +41,29 @@ vector<lbaSpec> getTableCSV(string csv_filename) {
             if (tempSub == "FILE_NAME") nameLine = sect;
             else if (tempSub == "FILE_SIZE") sizeLine = sect;
             else if (tempSub == "FILE_RLBN") rlbnLine = sect;
+            else {
+                if (sect == nameLine) {
+                    temp.file_name = tempSub;
+                }
+                else if (sect == sizeLine) {
+                    try { temp.file_size = std::stoi(tempSub); }
+                    catch(std::exception &e) {
+                        cerr << tempSub << " is not a valid size" << endl;
+                        csv.close();
+                        return {};
+                    }
+                }
+                else if (sect == rlbnLine) {
+                    try { temp.file_rlbn = std::stoi(tempSub); }
+                    catch(std::exception &e) {
+                        cerr << tempSub << " is not a valid logical block number" << endl;
+                        csv.close();
+                        return {};
+                    }
+                }
+            }
 
-            else if (sect == nameLine) {
-                temp.file_name = tempSub;
-            }
-            else if (sect == sizeLine) {
-                try { temp.file_size = std::stoi(tempSub); }
-                catch(std::exception &e) {
-                    cerr << tempSub << " is not a valid size" << endl;
-                    csv.close();
-                    return {};
-                }
-            }
-            else if (sect == rlbnLine) {
-                try { temp.file_rlbn = std::stoi(tempSub); }
-                catch(std::exception &e) {
-                    cerr << tempSub << " is not a valid logical block number" << endl;
-                    csv.close();
-                    return {};
-                }
-            }
+
         }
         out.push_back(temp);
     }
