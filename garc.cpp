@@ -69,7 +69,7 @@ void searchGARC(vector<lbaSpec> table, string garc_filename, bool isDebug, bool 
 
     log_file = garc_filename.substr(0, garc_filename.find_last_of('.')) + "_log.txt";
     if (hasLog) extraction_log.open(log_file.c_str());
-    if (isDebug) cout << "Saving extraction log to " << log_file << "\n" << endl;
+    if (hasLog) cout << "Saving extraction log to " << log_file << "\n" << endl;
 
     if (isDebug) cout << "Extracting from \"" << garc_filename
                       << "\" to \"" << extracted_folder << "\"" << endl;
