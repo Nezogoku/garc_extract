@@ -1,0 +1,11 @@
+LRMD HEADER, 0x10 Bytes
+    LRMD 0x00
+    Version(?) 0x04
+        Mainly "1"
+    Offset of sample data 0x08
+    Length of sample data 0x0C
+
+REQD HEADER, 0x10 Bytes
+    REQD, 0x00
+    Length of REQD chunk 0x04
+    Null (Start of REQD chunk) 0x08

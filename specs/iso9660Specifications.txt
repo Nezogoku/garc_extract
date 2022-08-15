@@ -1,0 +1,141 @@
+SYSTEM AREA, 0x8000 Bytes
+    Sector #n+1 (n from 0 to 15), (0x0800 * n)
+
+
+DATA AREA, Variable Bytes
+    Volume Descriptor #n+1 (n variable), (0x0800 * n)
+    Path Table
+    Directories
+
+BOOT RECORD, 0x0800 Bytes
+    Type code 0x00, 0x00
+    CD001, 0x01
+    Version, 0x06
+    Boot system name (Space-padded), 0x07
+    Boot name (Space-padded), 0x27
+    Data, 0x47
+
+PRIMARY VOLUME DESCRIPTOR, 0x0800 Bytes
+    Type code 0x01, 0x00
+    CD001, 0x01
+    Version, 0x06
+    Unused, 0x07
+    System name (Space-padded), 0x08
+    Volume name (Space-padded), 0x28
+    Unused, 0x48
+    Amount Logical Blocks, 0x50
+    Amount Logical Blocks {BE}, 0x54
+    Unused, 0x58
+    Amount disks, 0x78
+    Amount disks {BE}, 0x7A
+    Logical Volume ID, 0x7C
+    Logical Volume ID {BE}, 0x7E
+    Size of Logical Block, 0x80
+    Size of Logical Block {BE}, 0x82
+    Size of path table, 0x84
+    Size of path table {BE}, 0x88
+    Logical Block Address of path table, 0x8C
+    Logical Block Address of optional path table, 0x90
+        0x00 is no table
+    Logical Block Address of path table {BE}, 0x94
+    Logical Block Address of optional path table {BE}, 0x98
+        0x00 is no table
+    Root directory entry, 0x9C
+    Volume set name (Space-padded), 0xBE
+    Volume publisher name (Space-padded), 0x013E
+        If first byte is 0x5F, immediately followed by name of file in root
+    Volume programmer name (Space-padded), 0x01BE
+        If first byte is 0x5F, immediately followed by name of file in root
+    Volume application name (Space-padded), 0x023E
+        If first byte is 0x5F, immediately followed by name of file in root
+    Volume copyright info file name (Space-padded), 0x02BE
+    Volume abstract info file name (Space-padded), 0x02E3
+    Volume biblio. info file name (Space-padded), 0x0308
+    Volume creation date, 0x032D
+    Volume modification date, 0x033E
+    Volume expiration data, 0x034F
+    Volume effective use date, 0x0360
+    File structure version, 0x0370
+    Unused, 0x0371
+    Application defined, 0x0372
+    Reserved, 0x0572
+
+SUPPLEMENTARY VOLUME DESCRIPTOR, 0x0800 Bytes
+    Type code 0x02, 0x00
+
+VOLUME PARTITION DESCRIPTOR, 0x0800 Bytes
+    Type code 0x03, 0x00
+
+VOLUME DESCRIPTOR SET TERMINATOR, 0x0800 Bytes
+    Type code 0xFF, 0x00
+    CD001, 0x01
+    Version, 0x06
+    Undefined, 0x07
+
+VOLUME DESCRIPTOR DATE FORMAT, 0x11 Bytes
+    Year (ASCII, 1-based), 0x00
+        Default is 0000
+    Month (ASCII, 1-based), 0x04
+        Default is 00
+    Day (ASCII, 1-based), 0x06
+        Default is 00
+    Hour (ASCII, 0-based), 0x08
+        Default is 00
+    Minute (ASCII, 0-based), 0x0A
+        Default is 00
+    Second (ASCII, 0-based), 0x0C
+        Default is 00
+    Centisecond (ASCII, 0-based), 0x0E
+        Default is 00
+    Time zone offset GMT (15 min. intervals), 0x0F
+        0x00 (-48 west, GMT-12) to 0x64 (52 east, GMT+13)
+        Default is 0x00
+
+
+PATH TABLE, Variable Bytes
+    Length of directory ID, 0x00
+    Length of extended attribute record, 0x01
+    Logical Block Number of extent, 0x02
+    Parent directory ID, 0x06
+    Directory name (Null-padded to make even), 0x08
+
+
+DIRECTORY, Variable Bytes
+    Length of directory record, 0x00
+    Length of extended attribute record, 0x01
+    Logical Block Number of extent, 0x02
+    Logical Block Number of extent {BE}, 0x06
+    Size of extent, 0x0A
+    Size of extent {BE}, 0x0E
+    Recording date, 0x12
+    File flag, 0x19
+    Size of file unit (interleave), 0x1A
+        0x00 if no interleave
+    Size of interleave gap, 0x1B
+        0x00 if no interleave
+    Associated logical volume ID, 0x1C
+    Associated logical volume ID {BE}, 0x1E
+    Length of file name, 0x20
+        Terminated with ';' followed by its ID (ASCII)
+    File name (Null-padded to make odd), 0x21
+    ISO9660 extension data, (0x21 + name_length + padding)
+
+RECORDING DATE, 0x07 Bytes
+    Years since 1900, 0x00
+    Month (1-based), 0x01
+    Day (1-based), 0x02
+    Hour (0-based), 0x03
+    Minute (0-based), 0x04
+    Second (0-based), 0x05
+    Time zone offset GMT (15 min. intervals), 0x06
+        0x00 (-48 west, GMT-12) to 0x64 (52 east, GMT+13)
+
+FILE FLAG, 0x01 Byte
+    Is hidden, bit 0
+    Is subdirectory extent, bit 1
+    Is associated, bit 2
+    Is detailed in extended attribute record, bit 3
+    Has permissions in extended attribute record, bit 4
+    Reserved, bit 5
+    Reserved, bit 6
+    Is in additional extent, bit 7

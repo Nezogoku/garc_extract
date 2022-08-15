@@ -1,0 +1,27 @@
+XUI HEADER, ~0x14 Bytes
+    XUI\n 0x00
+    Unknown 0x04
+    Offset of file pre-definitions 0x08
+    Unknown 0x0C
+    Offset of paths(?) of files 0x10
+
+PATHS, ??? Bytes
+    Root path(?), 0x00
+    Relative path(?), ???
+    Name of file, ???
+
+DATA [Optional], ??? Bytes
+    Name, 0x00
+    data, ???
+
+FILE PRE-DEFINITIONS, ??? Bytes
+    Type(?), 0x00
+        0x00 denotes embedded files
+        0x01 denotes pathnames
+            Offset of next definition, 0x04
+            Offset of path/name, 0x08
+                Some value if otherwise
+            Some value, 0x0C
+            Some value, 0x10
+            Some value(?), 0x14
+                0xFFFFFFFF is terminating I guess

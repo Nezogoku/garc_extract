@@ -1,0 +1,18 @@
+GIMG HEADER, 0x10 Bytes
+    GIMG, 0x00
+    Some value, 0x04
+    Amount file definitions, 0x08
+
+FILE DEFINITIONS, 0x0C Bytes
+    Offset file name in GIMG, 0x00
+    Relative logical block number (LBN), 0x04
+        Multiply by 0x0800 to get true address
+    Some value, 0x08
+    Size of file, 0x0C
+
+FILE NAMES, Variable Bytes
+    Name of file, 0x00
+    Null byte
+
+
+Likely used as LBA table

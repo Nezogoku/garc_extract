@@ -1,0 +1,31 @@
+GPRS HEADER {BE}, 0x08 Bytes
+    GPRS, 0x00
+    Original size of file, 0x04
+
+DATA CHUNKS, Variable Bytes
+    Flag byte(?), 0x00
+    Data chunk, 0x01
+        Variable size (?)
+
+LIKELY USES CUSTOM LZR_COMPRESSION:
+    int outBytes[sizeD], int* inBytes
+    int tByte, int refBuffer = -1
+    
+    int indexIn = 0, int indexOut = 0
+    while true:
+        tByte = inBytes[indexIn++]
+        
+        int counter = 0
+        
+        while counter < 8:
+            #Without decompression
+            if !((tByte << counter++) & 0x80):
+                outBytes[indexOut++] = inBytes[indexIn++]
+            
+            #With decompression
+            else:
+                int refBytes = (refBuffer < 0) ? 3: 2
+                
+                do while (tByte << ++counter) & 0x80:
+                    refBytes++
+...I'll, uh, hash this out some day...

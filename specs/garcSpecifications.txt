@@ -1,0 +1,45 @@
+GARC HEADER, ~0x18 Bytes
+    GARC, 0x00
+    Some value, 0x04
+    ???, 0x08
+    ???, 0x0C
+    ???, 0x10
+    Offset of FILE, 0x14
+
+FILE HEADER, 0x10 Bytes
+    FILE, 0x00
+    Offset of NAME, 0x04
+    Amount file definitions, 0x08
+    Size of FILE definitions, 0x0C
+    Offset of FILE definitions, 0x10
+
+FILE DEFINITIONS, 0x1C
+    Extentions of file, 0x00
+    Size of file, 0x04
+    Offset of file data, 0x08
+    Offset of file name, 0x0C
+    ???, 0x10
+    ???, 0x14
+    ???, 0x18
+
+NAME HEADER, 0x10 Bytes
+    NAME, 0x00
+    Offset of DATA, 0x04
+    Amount name definitions, 0x08
+    Size of NAME definitions, 0x0C
+    Offset of NAME definitions, 0x10
+
+NAME DEFINITIONS, ??? Bytes
+    File name, 0x00
+
+DATA HEADER, 0x10 Bytes
+    DATA, 0x00
+    Offset of TERM, 0x04
+    Amount data, 0x08
+    Size of DATA, 0x0C
+    Offset of DATA, 0x10
+
+DATA, ??? Bytes
+    File data, 0x00
+
+TERM is end of archive
