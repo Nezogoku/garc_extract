@@ -35,7 +35,6 @@ int DecryptGPRS(ofstream &extraction_log, ifstream &section, bool isDebug, bool 
     section.seekg(index + 0x04);
     section.read((char*)(&decSize), sizeof(uint32_t));
     setReverse(decSize);
-    seclen = decSize;
 
 
     uint32_t GPRS_start = 0x00;
@@ -1666,6 +1665,8 @@ int DecryptGPRS(ofstream &extraction_log, ifstream &section, bool isDebug, bool 
             jump_count = 1;
         }
     }
+
+    if (seclen < 0x01) seclen = temp_file.size();
 
     ofstream out_file;
     out_file.open(dat_file, ios::binary);
