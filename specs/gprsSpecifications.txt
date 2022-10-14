@@ -1,31 +1,60 @@
-GPRS HEADER {BE}, 0x08 Bytes
+Custom LZ_COMPRESSION
+It's a work in progress... almost got it
+
+
+GPRS HEADER, 0x08 Bytes
     GPRS, 0x00
-    Original size of file, 0x04
+    Original size of file {BE}, 0x04
 
-DATA CHUNKS, Variable Bytes
-    Flag byte(?), 0x00
-    Data chunk, 0x01
-        Variable size (?)
-
-LIKELY USES CUSTOM LZR_COMPRESSION:
-    int outBytes[sizeD], int* inBytes
-    int tByte, int refBuffer = -1
+COMPRESSED CHUNKS
+    8 flag bits, 8-??? data bytes
     
-    int indexIn = 0, int indexOut = 0
-    while true:
-        tByte = inBytes[indexIn++]
-        
-        int counter = 0
-        
-        while counter < 8:
-            #Without decompression
-            if !((tByte << counter++) & 0x80):
-                outBytes[indexOut++] = inBytes[indexIn++]
+    FLAG BITS
+        0 is raw byte
+        1 is destination address + copy counter
+            0 is destination address
+            1 is constructed destination address
+                4 bits from flag (0x0X) added to constructed address
             
-            #With decompression
-            else:
-                int refBytes = (refBuffer < 0) ? 3: 2
-                
-                do while (tByte << ++counter) & 0x80:
-                    refBytes++
-...I'll, uh, hash this out some day...
+            0 is no change to counter
+            1 is add following bit from flag (b) to counter
+        
+        If amount bits greater than remaining data bytes, leave remaining as 0
+    
+    DATA BYTES
+        Flag 0
+            Raw is 0xAB
+        Flag 1
+            Destination Flag 0
+                Destination address is 0xFFFFFFAB
+            Destination Flag 1
+                Destination address is 0xFFFFFABX
+            
+            Counter starts at 1
+            LOOP:
+                Counter Flag 0
+                    BREAK
+                Counter Flag 1
+                    Counter * 2 + b
+        
+            COUNTER < 7:
+                LOOP COUNTER + 1 TIMES:
+                    Copied from destination address is 0xAB
+            COUNTER >= 7:
+                Increment counter
+                Added index is last 3 bits of counter
+                Address to copy to is added index added to address minus 8
+                Address to copy from is destination address added to address to copy to
+                Bit shift counter right 3
+                LOOP:
+                    ADDED INDEX == 0:
+                        Index is 0
+                        Add 8 to address to copy to
+                              and address to copy from
+                        COUNTER == -1:
+                            BREAK
+                    ADDED INDEX > 0:
+                        Index is last 3 bits of bitswapped added index plus 1
+                    LOOP INDEX < 8:
+                        (Copied from plus index) to (copied to plus index) is 0xAB
+                    Added index is 0
