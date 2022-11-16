@@ -72,58 +72,63 @@ vector<lbaSpec> getTableCSV(string csv_filename) {
     return out;
 }
 
-vector<lbaSpec> getTableBIN(string bin_filename) {
-    vector<lbaSpec> out;
-    uint32_t chunk, num_sects,
-             index = 0x00;
 
+vector<lbaSpec> getTableBIN(string bin_filename) {
     ifstream bin(bin_filename.c_str(), ios::binary);
     if (!bin.is_open()) {
         cerr << "Unable to open \"" << bin_filename << "\"" << endl;
         return {};
     }
 
-    bin.seekg(index);
-    bin.read((char*)(&chunk), sizeof(uint32_t));
-    setReverse(chunk);
+    uint32_t binSize;
+    bin.seekg(0x00, ios::end);
+    binSize = bin.tellg();
+
+    uchar temp_bin[binSize];
+    bin.seekg(0x00);
+    bin.read((char*)(temp_bin), binSize);
+    bin.close();
+
+    return getTableBIN(temp_bin);
+}
+
+vector<lbaSpec> getTableBIN(uchar* src) {
+    vector<lbaSpec> out;
+    uint32_t chunk, num_sects,
+             index = 0x00;
+
+    getBeInt(src, chunk, index, 0x04);
+    index += 0x08;
 
     if (chunk != GIMG) {
         cerr << "This file does not store LBA info" << endl;
-        bin.close();
         return {};
     }
 
-    bin.seekg(index + 0x08);
-    bin.read((char*)(&num_sects), sizeof(uint32_t));
+    getLeInt(src, num_sects, index, 0x04);
+    index += 0x04;
 
     for (int s = 0; s < num_sects; ++s) {
         index = 0x0C + (s * 0x10);
         lbaSpec temp;
 
-        bin.seekg(index + 0x00);
-        bin.read((char*)(&chunk), sizeof(uint32_t));
-
-        bin.seekg(index + 0x04);
-        bin.read((char*)(&temp.file_rlbn), sizeof(uint32_t));
-
-        bin.seekg(index + 0x08);
-        bin.read((char*)(&temp.file_unkn), sizeof(uint32_t));
-
-        bin.seekg(index + 0x0C);
-        bin.read((char*)(&temp.file_size), sizeof(uint32_t));
+        getLeInt(src, chunk, index, 0x04);
+        index += 0x04;
+        getLeInt(src, temp.file_rlbn, index, 0x04);
+        index += 0x04;
+        getLeInt(src, temp.file_unkn, index, 0x04);
+        index += 0x04;
+        getLeInt(src, temp.file_size, index, 0x04);
+        index += 0x04;
 
 
-        bin.seekg(chunk);
         temp.file_name = "";
         while(true) {
-            char buff;
-            bin.get(buff);
-            if (buff == 0x00) break;
-            temp.file_name += buff;
+            if (!src[chunk]) break;
+            temp.file_name += src[chunk++];
         }
         out.push_back(temp);
     }
-    bin.close();
 
     return out;
 }
