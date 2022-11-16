@@ -11,4 +11,7 @@ Capable of extracting all files when LBA table specified.
             -T lba.csv      Accepts a text file containing the corresponding LBA table
             -B sector.bin   Accepts a binary file containing the corresponding LBA table
 
-If a sector.bin file is found, the programme will create a csv containg the LBA table automatically.
+If a sector.bin file is found, the programme will create a csv containing the LBA table automatically.
+
+If multiple files are dragged on to the program and the first contains the LBA table for the second,
+then all listed files in the table will be extracted from the second file automatically.
