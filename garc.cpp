@@ -19,17 +19,7 @@ using std::vector;
 using std::remove;
 
 
-void setReverse(uint32_t &tmpInt) {
-    uint32_t buffer = 0x00;
-    for (int b = 0; b < 4; ++b) {
-        buffer |= uint8_t((tmpInt >> (0x00 + (8 * b))) & 0xFF);
-        if (b != 3) buffer <<= 8;
-    }
-    tmpInt = buffer;
-}
-
-
-void searchGARC(vector<lbaSpec> table, string garc_filename, bool isDebug, bool hasLog) {
+void searchGARC(string garc_filename) {
     if (isDebug) cout << std::setfill('0') << std::right;
 
     ifstream file;
@@ -38,20 +28,21 @@ void searchGARC(vector<lbaSpec> table, string garc_filename, bool isDebug, bool 
     string extracted_folder = "";
     string log_file = "";
 
-    bool hasTable = (table.empty()) ? false : true;
+    //Checks if global LBA table has elements
+    bool hasTable = (lbaTable.empty()) ? false : true;
 
     uint32_t sizeofsect = 0x00,
+             sizeoffile = 0,
              index = 0x00,
-             lbns = table.size(),
+             lbns = lbaTable.size(),
              lbni = 0;
 
     if (hasTable) {
-        while (table[lbni].file_name == "FILE_NAME") lbni += 1;
+        while (lbaTable[lbni].file_name == "FILE_NAME") lbni += 1;
+        cout << "This binary file has " << (lbaTable.size() - lbni) << " files" << endl;
     }
 
-    if (hasTable) cout << "This binary file has " << (table.size() - lbni) << " files" << endl;
     extracted_folder = garc_filename.substr(0, garc_filename.find_last_of("\\/") + 1);
-
     _chdir(extracted_folder.c_str());
 
     garc_filename = garc_filename.substr(garc_filename.find_last_of("\\/") + 1);
@@ -62,7 +53,13 @@ void searchGARC(vector<lbaSpec> table, string garc_filename, bool isDebug, bool 
         return;
     }
 
-    file.seekg(0x00);
+    file.seekg(0x00, ios::end);
+    sizeoffile = file.tellg();
+
+    uchar *temp_src = new uchar[sizeoffile];
+    file.seekg(0x00, ios::beg);
+    file.read((char*)(temp_src), sizeoffile);
+    file.close();
 
     extracted_folder += garc_filename.substr(0, garc_filename.find_last_of('.'));
 
@@ -80,55 +77,40 @@ void searchGARC(vector<lbaSpec> table, string garc_filename, bool isDebug, bool 
     if (hasLog) extraction_log << "Files in " + garc_filename + ":\n";
 
 
-    char buff;
     while (true) {
-        uint32_t chunk, lbSize = 0;
+        uint32_t chunk, lbSize;
         string lbName = "";
 
         if (hasTable && (lbni < lbns)) {
-            index = table[lbni].file_rlbn * 0x0800;
-            lbSize = table[lbni].file_size;
-            lbName = table[lbni].file_name;
+            index = lbaTable[lbni].file_rlbn * 0x0800;
+            lbSize = lbaTable[lbni].file_size;
+            lbName = lbaTable[lbni].file_name;
 
             lbni += 1;
         }
+        else lbSize = sizeoffile - index;
 
-        file.seekg(index);
-        file.read((char*)(&chunk), sizeof(uint32_t));
-        setReverse(chunk);
-
+        getBeInt(temp_src, chunk, index, 0x04);
         if (chunk == GARC) {
-            sizeofsect = fromGARC(extraction_log, file, isDebug, hasLog, index, lbSize, lbName);
+            sizeofsect = fromGARC(extraction_log, (temp_src + index), lbSize, lbName);
 
-            if (sizeofsect > 0) {
-                index += sizeofsect;
-            }
-            else {
-                index += 0x04;
-            }
+            if (sizeofsect > 0) index += sizeofsect;
+            else index += 0x04;
+
             continue;
         }
         else if (chunk == GPRS) {
-            sizeofsect = DecryptGPRS(extraction_log, file, isDebug, hasLog, index, lbSize, lbName);
-            if (sizeofsect > 0) {
-                index += sizeofsect;
-            }
-            else {
-                index += 0x04;
-            }
+            sizeofsect = inflateGPRS(extraction_log, (temp_src + index), lbSize, lbName);
+
+            if (sizeofsect > 0) index += sizeofsect;
+            else index += 0x04;
         }
         else if (hasTable) {
             ofstream extr_out(lbName.c_str(), ios::binary);
-            file.seekg(index);
-            for(int ind = 0; ind < lbSize; ++ind) {
-                file.get(buff);
-                extr_out.put(buff);
-            }
+            extr_out.write((const char*)(&temp_src[index]), lbSize);
             extr_out.close();
         }
-        else {
-            index += 0x01;
-        }
+        else index += 0x01;
 
         if (isDebug && (index % 0x800) == 0) cout << "Offset 0x"
                                                   << std::hex
@@ -136,28 +118,28 @@ void searchGARC(vector<lbaSpec> table, string garc_filename, bool isDebug, bool 
                                                   << endl;
 
         //Check if reached end of table-less file or lba table
-        if ((!hasTable && !file.get(buff)) || (hasTable && lbni >= lbns)) break;
+        if ((!hasTable && (index >= sizeoffile)) || (hasTable && lbni >= lbns)) break;
     }
-    file.close();
 
     if (hasLog) extraction_log << "End of file\n";
     if (hasLog) extraction_log.close();
+
+    delete[] temp_src;
 }
 
-int fromGARC(ofstream &extraction_log, ifstream &file, bool isDebug, bool hasLog, int secdex, int seclen, string name) {
-    static int num_garc = 0;
+int fromGARC(ofstream &extraction_log, uchar* src, int seclen, string name) {
     string garc_file;
     if (name.empty()) {
-        garc_file = "000";
         if (num_garc < 1) {
             garc_file = "";
         }
         else {
-            garc_file += to_string(num_garc);
+            garc_file = "000";
+            garc_file = garc_file + to_string(num_garc);
             garc_file = garc_file.substr(garc_file.size() - 3);
+            garc_file = "_" + garc_file;
         }
-
-        garc_file = "garc_" + garc_file;
+        garc_file = "garc" + garc_file;
     }
     else garc_file = name;
 
@@ -184,49 +166,33 @@ int fromGARC(ofstream &extraction_log, ifstream &file, bool isDebug, bool hasLog
     uint32_t termAddr;                                                          // 32 bit le, TERM location
 
 
-    file.seekg(secdex + 0x14);
-    file.read((char*)(&cfileAddr), sizeof(uint32_t));
+    getLeInt(src, cfileAddr, 0x14, 0x04);
 
-    file.seekg(secdex + cfileAddr + 0x04);
-    file.read((char*)(&cnameAddr), sizeof(uint32_t));
-    file.seekg(secdex + cfileAddr + 0x08);
-    file.read((char*)(&numFiles), sizeof(uint32_t));
-    file.seekg(secdex + cfileAddr + 0x0C);
-    file.read((char*)(&cfileSize), sizeof(uint32_t));
-    file.seekg(secdex + cfileAddr + 0x10);
-    file.read((char*)(&cfileStart), sizeof(uint32_t));
+    getBeInt(src, chunk, cfileAddr, 0x04);
+    if (chunk != FILE) return 0x04;
+    getLeInt(src, cnameAddr, cfileAddr + 0x04, 0x04);
+    getLeInt(src, numFiles, cfileAddr + 0x08, 0x04);
+    getLeInt(src, cfileSize, cfileAddr + 0x0C, 0x04);
+    getLeInt(src, cfileStart, cfileAddr + 0x10, 0x04);
 
-    file.seekg(secdex + cnameAddr + 0x04);
-    file.read((char*)(&cdataAddr), sizeof(uint32_t));
-    file.seekg(secdex + cnameAddr + 0x08);
-    file.read((char*)(&numNames), sizeof(uint32_t));
-    file.seekg(secdex + cnameAddr + 0x0C);
-    file.read((char*)(&cnameSize), sizeof(uint32_t));
-    file.seekg(secdex + cnameAddr + 0x10);
-    file.read((char*)(&cnameStart), sizeof(uint32_t));
+    getBeInt(src, chunk, cnameAddr, 0x04);
+    if (chunk != NAME) return 0x04;
+    getLeInt(src, cdataAddr, cnameAddr + 0x04, 0x04);
+    getLeInt(src, numNames, cnameAddr + 0x08, 0x04);
+    getLeInt(src, cnameSize, cnameAddr + 0x0C, 0x04);
+    getLeInt(src, cnameStart, cnameAddr + 0x10, 0x04);
 
-    file.seekg(secdex + cdataAddr + 0x04);
-    file.read((char*)(&termAddr), sizeof(uint32_t));
-    file.seekg(secdex + cdataAddr + 0x08);
-    file.read((char*)(&numData), sizeof(uint32_t));
-    file.seekg(secdex + cdataAddr + 0x0C);
-    file.read((char*)(&cdataSize), sizeof(uint32_t));
-    file.seekg(secdex + cdataAddr + 0x10);
-    file.read((char*)(&cdataStart), sizeof(uint32_t));
-
-
-    file.seekg(secdex + cfileAddr);
-    file.read((char*)(&chunk), sizeof(uint32_t));
-    setReverse(chunk);
-    if (chunk != FILE) {
-        return 0x04;
-    }
+    getBeInt(src, chunk, cdataAddr, 0x04);
+    if (chunk != DATA) return 0x04;
+    getLeInt(src, termAddr, cdataAddr + 0x04, 0x04);
+    getLeInt(src, numData, cdataAddr + 0x08, 0x04);
+    getLeInt(src, cdataSize, cdataAddr + 0x0C, 0x04);
+    getLeInt(src, cdataStart, cdataAddr + 0x10, 0x04);
 
 
     if (hasLog) extraction_log << "\tGARC\n";
     if (isDebug) cout << "GARC" << endl;
     if (isDebug) cout << numFiles << " files discovered" << endl;
-    if (hasLog) extraction_log << "\tOffset: 0x" << std::hex << secdex << std::dec << "\n";
     if (hasLog) extraction_log << "\t" + to_string(numFiles) + " file descriptions in current archive\n";
     if (hasLog) extraction_log << "\t" + to_string(numNames) + " file names in current archive\n";
     if (hasLog) extraction_log << "\t" + to_string(numData) + " file data in current archive\n";
@@ -236,86 +202,56 @@ int fromGARC(ofstream &extraction_log, ifstream &file, bool isDebug, bool hasLog
     if (hasLog) extraction_log << "Current folder: " << garc_file << "\n";
     if (isDebug) cout << "Current folder: " << garc_file << endl;
 
-    uint32_t workAddr = secdex + cfileStart;
+    uint32_t workAddr = cfileStart;
     int fileFound = 0;
 
-    while (fileFound++ < numFiles && workAddr < (secdex + cfileStart) + cfileSize) {
-        char buff;
+    while (fileFound++ < numFiles && workAddr < (cfileStart) + cfileSize) {
+        bool save_file = false;
 
         // Get extension of file being extracted
-        file.seekg(workAddr);
         string temp_ext = "";
-        while(temp_ext.length() < 4) {
-            file.get(buff);
-            if (buff == 0x00) break;
-            temp_ext += buff;
-        }
+        for(int e = 0; e < 4; ++e) temp_ext += src[workAddr + e];
         workAddr += 0x04;
 
         // Get size of file being extracted (32 bit le)
-        file.seekg(workAddr);
         uint32_t temp_size;
-        file.read((char*)(&temp_size), sizeof(uint32_t));
+        getLeInt(src, temp_size, workAddr, 0x04);
         workAddr += 0x04;
 
         // Get location of file being extracted (32 bit le)
-        file.seekg(workAddr);
         uint32_t temp_data_addr;
-        file.read((char*)(&temp_data_addr), sizeof(uint32_t));
+        getLeInt(src, temp_data_addr, workAddr, 0x04);
         workAddr += 0x04;
 
         // Get location of name of file being extracted (32 bit le)
-        file.seekg(workAddr);
         uint32_t temp_name_addr;
-        file.read((char*)(&temp_name_addr), sizeof(uint32_t));
+        getLeInt(src, temp_name_addr, workAddr, 0x04);
         workAddr += 0x0C;
 
 
         // Get name of file being extracted
-        file.seekg(secdex + temp_name_addr);
         string temp_name = "";
         while(true) {
-            file.get(buff);
-            if (buff == 0x00) break;
-            temp_name += buff;
+            if (!src[temp_name_addr]) break;
+            temp_name += src[temp_name_addr++];
         }
 
-        // Get data of file being extracted
-        file.seekg(secdex + temp_data_addr);
 
-        // Extract file
+        // Check if file exists
         if (fileExists(temp_name)) continue;
 
-        ofstream extr_out(temp_name.c_str(), ios::binary);
-        file.seekg(secdex + temp_data_addr);
-        for(int ind = 0; ind < temp_size; ++ind) {
-            file.get(buff);
-            extr_out.put(buff);
-        }
-        extr_out.close();
-
         //Check if compressed or GARC or sector.bin
-        bool delFile = true;
-
-        ifstream test_file;
-        test_file.open(temp_name.c_str(), ios::binary);
-        test_file.seekg(0x00);
-        test_file.read((char*)(&chunk), sizeof(uint32_t));
-        setReverse(chunk);
-
-        if (chunk == GPRS) DecryptGPRS(extraction_log, test_file, isDebug, hasLog, 0x00, temp_size, temp_name);
+        getBeInt(src, chunk, temp_data_addr, 0x04);
+        if (chunk == GPRS) inflateGPRS(extraction_log, (src + temp_data_addr), temp_size, temp_name);
         else if (chunk == GARC) {
             if (hasLog) extraction_log << "\tExtracting " << temp_name;
-            fromGARC(extraction_log, test_file, isDebug, hasLog, 0x00, temp_size, temp_name);
+            fromGARC(extraction_log, (src + temp_data_addr), temp_size, temp_name);
         }
         else if (chunk == GIMG) {
             if (hasLog) extraction_log << "\tRecording LBA values from " << temp_name << '\n';
-            test_file.close();
 
-            vector<lbaSpec> lba = getTableBIN(temp_name);
-
+            vector<lbaSpec> lba = getTableBIN((src + temp_data_addr));
             string csv_file = temp_name.substr(0, temp_name.find_last_of('.')) + ".csv";
-
             ofstream csv_out(csv_file.c_str());
             csv_out << "FILE_NAME,FILE_RLBN,FILE_SIZE\n";
 
@@ -326,21 +262,26 @@ int fromGARC(ofstream &extraction_log, ifstream &file, bool isDebug, bool hasLog
             }
             csv_out.close();
 
-            delFile = false;
+            //Set global LBA table to local LBA table
+            lbaTable.swap(lba);
+
+            save_file = true;
         }
-        else delFile = false;
+        else save_file = true;
 
-        test_file.close();
-        if (delFile) remove(temp_name.c_str());
+        // Get data of file being extracted
+        if (save_file) {
+            ofstream extr_out(temp_name.c_str(), ios::binary);
+            extr_out.write((const char*)(&src[temp_data_addr]), temp_size);
+            extr_out.close();
 
-
-        cout << "Extracted " << temp_name << endl;
-
-        // Saves info to log file
-        if (hasLog) extraction_log << "\t" << temp_name << "\n\t" <<
-                                      "\tFile type: " << temp_ext << "\n\t" <<
-                                      "\tFile address: 0x" << std::hex << secdex + temp_data_addr << std::dec << "\n\t" <<
-                                      "\tFile size: " << temp_size << " bytes\n";
+            cout << "Extracted " << temp_name << endl;
+            // Saves info to log file
+            if (hasLog) extraction_log << "\t" << temp_name << "\n\t" <<
+                                          "\tFile type: " << temp_ext << "\n\t" <<
+                                          "\tFile address: 0x" << std::hex << temp_data_addr << std::dec << "\n\t" <<
+                                          "\tFile size: " << temp_size << " bytes\n";
+        }
     }
 
     cout << '\n';
