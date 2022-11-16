@@ -1,5 +1,4 @@
 Custom LZ_COMPRESSION
-It's a work in progress... almost got it
 
 
 GPRS HEADER, 0x08 Bytes
@@ -7,15 +6,17 @@ GPRS HEADER, 0x08 Bytes
     Original size of file {BE}, 0x04
 
 COMPRESSED CHUNKS
-    8 flag bits, 8-??? data bytes
+    8 flag bits
     
     FLAG BITS
         0 is raw byte
-        1 is destination address + copy counter
-            0 is destination address
-            1 is constructed destination address
+        1 is copy address + copy counter
+            ADDRESS:
+            0 is copy address
+            1 is constructed copy address
                 4 bits from flag (0x0X) added to constructed address
             
+            COUNTER:
             0 is no change to counter
             1 is add following bit from flag (b) to counter
         
@@ -25,10 +26,10 @@ COMPRESSED CHUNKS
         Flag 0
             Raw is 0xAB
         Flag 1
-            Destination Flag 0
-                Destination address is 0xFFFFFFAB
-            Destination Flag 1
-                Destination address is 0xFFFFFABX
+            Copy Address Flag 0
+                Copy address is 0xFFFFFFAB
+            Copy Address Flag 1
+                Copy address is 0xFFFFFABX - 0xFF
             
             Counter starts at 1
             LOOP:
@@ -38,23 +39,25 @@ COMPRESSED CHUNKS
                     Counter * 2 + b
         
             COUNTER < 7:
+                Final copy address is destination address + copy address
                 LOOP COUNTER + 1 TIMES:
-                    Copied from destination address is 0xAB
+                    Copied from final copy address is 0xAB
+                    Increment final copy address and destination address by 1
+                    
             COUNTER >= 7:
                 Increment counter
                 Added index is last 3 bits of counter
-                Address to copy to is added index added to address minus 8
-                Address to copy from is destination address added to address to copy to
+                Destination address is increased by (added index - 8)
+                Final copy address is destination address + copy address
                 Bit shift counter right 3
-                LOOP:
+                LOOP COUNTER + 1 TIMES:
                     ADDED INDEX == 0:
                         Index is 0
-                        Add 8 to address to copy to
-                              and address to copy from
-                        COUNTER == -1:
+                        Increment final copy address and destination address by 8
+                        COUNTER == 0:
                             BREAK
                     ADDED INDEX > 0:
-                        Index is last 3 bits of bitswapped added index plus 1
+                        Index is last 3 bits of bitswapped added index + 1
                     LOOP INDEX < 8:
-                        (Copied from plus index) to (copied to plus index) is 0xAB
+                        Copied from (final copy address + index) is 0xAB
                     Added index is 0
