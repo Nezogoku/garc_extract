@@ -1,10 +1,7 @@
+#include <string>
 #include "defines.hpp"
 
-using std::cout;
-using std::cerr;
-using std::endl;
 using std::string;
-using std::vector;
 
 
 ///Main programme thing
@@ -20,12 +17,13 @@ int main(int argc, char *argv[]) {
         printOpts(prgm);
     }
     else {
-        int fileIndex = 1;
-        vector<lbaSpec> lbaTable;
-        bool isDebug = false,
-             hasLog = false;
+        isDebug = false;
+        hasLog = false;
 
+        int fileIndex = 1;
         while (fileIndex < argc) {
+            num_garc = 0;
+            num_gprs = 0;
             string argin = argv[fileIndex++];
             removeQuote(argin);
 
@@ -87,7 +85,7 @@ int main(int argc, char *argv[]) {
                         continue;
                 }
             }
-            else searchGARC(lbaTable, argin, isDebug, hasLog);
+            else searchGARC(argin);
         }
     }
 
