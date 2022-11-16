@@ -13,5 +13,5 @@ Capable of extracting all files when LBA table specified.
 
 If a sector.bin file is found, the programme will create a csv containing the LBA table automatically.
 
-If multiple files are dragged on to the program and the first contains the LBA table for the second,
+If multiple files are dragged onto the program and the first contains the LBA table for the second,
 then all listed files in the table will be extracted from the second file automatically.
