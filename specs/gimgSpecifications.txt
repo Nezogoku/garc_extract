@@ -1,9 +1,9 @@
-GIMG HEADER, 0x10 Bytes
+GIMG HEADER, 0x0C Bytes
     GIMG, 0x00
-    Some value, 0x04
+    CRC or whatever, 0x04
     Amount file definitions, 0x08
 
-FILE DEFINITIONS, 0x0C Bytes
+FILE DEFINITIONS, 0x10 Bytes
     Offset file name in GIMG, 0x00
     Relative logical block number (LBN), 0x04
         Multiply by 0x0800 to get true address

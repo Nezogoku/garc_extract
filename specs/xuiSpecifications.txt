@@ -1,5 +1,5 @@
 XUI HEADER, ~0x14 Bytes
-    XUI\n 0x00
+    XUI\0 0x00
     Unknown 0x04
     Offset of file pre-definitions 0x08
     Unknown 0x0C
@@ -24,4 +24,12 @@ FILE PRE-DEFINITIONS, ??? Bytes
             Some value, 0x0C
             Some value, 0x10
             Some value(?), 0x14
-                0xFFFFFFFF is terminating I guess
+                0xFFFFFFFF is... something
+            Width of image, 0x18
+            Height of image, 0x1A
+            Some value, 0x1C
+            Width of... hitbox(?), 0x20
+            Height of... hitbox(?), 0x22
+            Some value, 0x24
+            Some value, 0x28
+            Some value, 0x2C

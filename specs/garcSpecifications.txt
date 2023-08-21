@@ -1,10 +1,12 @@
-GARC HEADER, ~0x18 Bytes
+GARC HEADER, 0x0C Bytes
     GARC, 0x00
-    Some value, 0x04
-    ???, 0x08
-    ???, 0x0C
-    ???, 0x10
-    Offset of FILE, 0x14
+    CRC thing, 0x04
+    Block align (?), 0x08
+
+GARC SUBHEADER, 0x08 Bytes
+    NULL (?) 0x00
+    Offset of FILE 0x04
+
 
 FILE HEADER, 0x10 Bytes
     FILE, 0x00
@@ -13,14 +15,14 @@ FILE HEADER, 0x10 Bytes
     Size of FILE definitions, 0x0C
     Offset of FILE definitions, 0x10
 
-FILE DEFINITIONS, 0x1C
+FILE DEFINITIONS, 0x18
     Extentions of file, 0x00
     Size of file, 0x04
     Offset of file data, 0x08
     Offset of file name, 0x0C
-    ???, 0x10
-    ???, 0x14
-    ???, 0x18
+    Unknown, 0x10
+    Some flag (?), 0x14
+
 
 NAME HEADER, 0x10 Bytes
     NAME, 0x00
@@ -29,8 +31,9 @@ NAME HEADER, 0x10 Bytes
     Size of NAME definitions, 0x0C
     Offset of NAME definitions, 0x10
 
-NAME DEFINITIONS, ??? Bytes
-    File name, 0x00
+NAME DEFINITIONS, Variable Bytes
+    File names, 0x00
+
 
 DATA HEADER, 0x10 Bytes
     DATA, 0x00
@@ -39,7 +42,8 @@ DATA HEADER, 0x10 Bytes
     Size of DATA, 0x0C
     Offset of DATA, 0x10
 
-DATA, ??? Bytes
+DATA, Variable Bytes
     File data, 0x00
+
 
 TERM is end of archive
