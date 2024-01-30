@@ -5,76 +5,115 @@
 
 ///Struct for custom stringstream
 struct sstream {
-    unsigned char *str_beg, *str_end, *str_cur;
-    unsigned ssize;
-    std::string ssub; unsigned isub;
-
-    sstream(unsigned char *str = 0, unsigned siz = 0) : ssize(0), ssub(""), isub(-1) {
-        copy(str, str_beg, siz, 1);
-        str_cur = str_beg;
-        str_end = str_beg + siz;
-    }
+    sstream() :
+        str_beg(""), ssub(""), isub(-1) {}
+    sstream(const std::string str) :
+        str_beg(str), ssub(""), isub(-1) {}
+    sstream(const unsigned char *str = 0, const unsigned siz = 0) :
+        str_beg(std::string((char*)str, siz)), ssub(""), isub(-1) {}
+    sstream(const sstream &s) :
+        str_beg(s.str_beg), ssub(s.ssub), isub(s.isub) {}
+    sstream(sstream &&s) :
+        sstream{s} { s.~sstream(); }
     ~sstream() { reset(); }
 
-    int getStream(const char *delim = 0) {
-        int ret = 0;
-        bool quotes = 0;
-        char sep = (!delim) ? '\0' : delim[0];
+    sstream& operator=(const sstream &s) { copy(s); return *this; }
+    sstream& operator=(sstream &&s) { copy((const sstream)s); s.~sstream(); return *this; }
 
+    int getStream(const char *delim = 0) {
+        bool quotes = 0;
+        int pos0, pos1;
+        
         if (!ssub.empty()) ssub.clear();
         isub = -1;
-
-        if (!str_beg) return ret;
-
-        str_cur += ssize;
-        while (true) {
-            if (str_cur >= str_end) break;
-
-            if (*str_cur == '\"') { quotes = !quotes; str_cur += 1; }
-            else if (isgraph(*str_cur)) break;
-            else str_cur += 1;
+        if (str_beg.empty()) return 0;
+        
+        auto get_whitespace = [](std::string str, int pos = 0) -> int {
+            return str.find_first_of(" \"\t\r\n\v\f", pos);
+        };
+        auto get_not_whitespace = [](std::string str, int pos = 0) -> int {
+            return str.find_first_not_of(" \t\r\n\v\f", pos);
+        };
+        
+        pos0 = pos1 = get_not_whitespace(str_beg, str_pos);
+        if (pos0 == std::string::npos) { reset(); return 0; }
+        
+        if (delim) {
+            pos1 = str_beg.find(delim, str_pos);
         }
-
-        ssize = 0;
-        while (true) {
-            if (str_cur + ssize >= str_end) break;
-
-            if (*(str_cur + ssize) == '\"') { quotes = !quotes; ssize += 1; }
-            else if (isspace(*(str_cur + ssize)) && !quotes) break;
-            else if (*(str_cur + ssize) == sep && !quotes) { ssize += 1; break; }
-            else ssize += 1;
+        else {
+            while ((pos1 = get_whitespace(str_beg, pos1)) != std::string::npos) {
+                if (str_beg[pos1] == '\"') quotes = !quotes;
+                else if (quotes);
+                else break;
+                
+                pos1 += 1;
+            }
         }
-
-        for (int c = 0; c < ssize; ++c) {
-            if (*(str_cur + c) == '\"' || *(str_cur + c) == sep) continue;
-            else ssub += *(str_cur + c);
+        if (pos1 == std::string::npos) pos1 = str_beg.length() - 1;
+        ssub = str_beg.substr(pos0, pos1 - pos0);
+        str_pos = pos1 + ((!delim) ? 1 : std::string(delim).length());
+        
+        pos0 = get_whitespace(ssub);
+        while ((pos1 = get_whitespace(ssub, pos0)) != std::string::npos) {
+            if (ssub[pos1] == '\"') {
+                quotes = !quotes;
+                ssub.erase(pos1, 1);
+                if (!quotes) pos0 = pos1;
+            }
+            else if (!quotes && delim) {
+                ssub.erase(pos1, 1);
+            }
+            else if (quotes) pos0 += 1;
         }
-
+        
         if (!ssub.empty()) {
-            bool isnum = true;
-            for (auto &c : ssub) if (!isdigit(c)) { isnum = false; break; }
-            if (isnum) { isub = stol(ssub, 0, 10); ssub.clear(); }
-
-            ret = 1;
+            auto is_dec = [&]() -> bool {
+                return ssub.find_first_not_of("0123456789") == std::string::npos;
+            };
+            auto is_hex = [&]() -> bool {
+                return ssub.find("0x") == 0 &&
+                       ssub.find_first_not_of("0123456789ABCDEFabcdef", 2) == std::string::npos;
+            };
+            
+            if (is_dec()) { isub = std::stol(ssub, nullptr, 10); }
+            else if (is_hex()) { isub = std::stol(ssub, nullptr, 16); }
+            return 1;
         }
-        else reset();
+        else {
+            reset();
+            return 0;
+        }
+    }
 
-        return ret;
+    std::string getString(const char *delim = 0, std::string str = "") {
+        if (!str.empty() && (!getStream(delim) || ssub != str || !getStream())) return "";
+        else if (str.empty() && !getStream(delim)) return "";
+        else return ssub;
+    }
+
+    int getUnsigned(const char *delim = 0, std::string str = "") {
+        if (!str.empty() && (!getStream(delim) || ssub != str || !getStream())) return -1;
+        else if (str.empty() && !getStream(delim)) return -1;
+        else return isub;
     }
 
 
     private:
+        std::string str_beg, ssub; unsigned int isub;
+        int str_pos;
+
         void reset() {
-            if (str_beg) { delete[] str_beg; str_beg = 0; }
-            if (str_end) str_end = 0;
-            if (str_cur) str_cur = 0;
+            if (!str_beg.empty()) str_beg.clear();
+            if (!ssub.empty()) ssub.clear();
+            str_pos = 0; isub = -1;
         }
-        template <typename T0, typename T1>
-        void copy(const T0 *in, T1 *&out, const int S, const int a) {
-            if (in) {
-                if (S > 0) out = new T1[S + a] {};
-                for (int i = 0; i < S; ++i) out[i] = T1(in[i]);
-            }
+        
+        void copy(const sstream &s) {
+            reset();
+            str_beg = s.str_beg;
+            ssub = s.ssub;
+            isub = s.isub;
         }
 };
 
