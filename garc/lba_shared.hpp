@@ -17,6 +17,7 @@ class lbat {
         int setTableBIN(const char *bin_filename);
 
     protected:
+        int getTableNum() { return (int)this->amnt_glba; }
         int setTable(const char *filename, int tabletyp);
         
         bool isDebug;
