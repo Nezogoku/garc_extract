@@ -31,7 +31,7 @@ class lbat {
             unsigned file_rlbn;     // Relative logical block number of file
             //unsigned file_unkn;   // Unknown
             unsigned file_size;     // Size of file
-        } *glba_info;
+        } *info;
 
     private:
         void reset();
