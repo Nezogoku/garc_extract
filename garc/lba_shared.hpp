@@ -5,10 +5,8 @@
 
 class lbat {
     public:
-        lbat() : reset() { this->isDebug = false; }
+        lbat() : reset() {}
         ~lbat() : reset() {}
-
-        void setDebug(bool debug) { this->isDebug = debug; }
         
         std::string getTableCSV(unsigned char *src, unsigned src_size);
         int setTableCSV(unsigned char *src, unsigned src_size);
