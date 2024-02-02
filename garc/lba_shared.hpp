@@ -5,8 +5,8 @@
 
 class lbat {
     public:
-        lbat(bool debug = false) : isDebug(debug) {}
-        ~lbat() { table = {}; }
+        lbat() : reset() {}
+        ~lbat() : reset() {}
 
         void setDebug(bool debug) { this->isDebug = debug; }
         int setTableCSV(unsigned char *src, unsigned src_size);
@@ -21,41 +21,20 @@ class lbat {
         std::string getTableCSV(unsigned char *src, unsigned src_size);
 
     protected:
+        unsigned getLeInt(unsigned char *&in, int length);
         int setTable(const char *filename, int tabletyp);
-        void resetTable() { this->table = {}; }
+        
+        bool isDebug;
+        unsigned amnt_glba;
+        struct lbainf {
+            std::string file_name;  // Name of file
+            unsigned file_rlbn;     // Relative logical block number of file
+            //unsigned file_unkn;   // Unknown
+            unsigned file_size;     // Size of file
+        } *glba_info;
 
     private:
-        bool isDebug;
-        struct lbaSpec {
-            //unsigned glba_crc;    // CRC
-            unsigned glba_amnt;     // Amount LB
-            struct lbainf {
-                std::string file_name;  // Name of file
-                unsigned file_rlbn;     // Relative logical block number of file
-                //unsigned file_unkn;   // Unknown
-                unsigned file_size;     // Size of file
-            } *glba_info;
-
-            lbaSpec() : glba_amnt(0), glba_info(0) {}
-            ~lbaSpec() { reset(); }
-
-            lbaSpec& operator=(const lbaSpec &s) {
-                reset();
-                glba_amnt = s.glba_amnt;
-                copy(s.glba_info, glba_info, s.glba_amnt, 0);
-                return *this;
-            }
-
-            private:
-                void reset() { if (glba_info) delete[] glba_info; }
-                template <typename T0, typename T1>
-                void copy(const T0 *in, T1 *&out, const int S, const int a) {
-                    if (in) {
-                        if (S > 0) out = new T1[S + a] {};
-                        for (int i = 0; i < S; ++i) out[i] = T1(in[i]);
-                    }
-                }
-        } table;
+        void reset();
 };
 
 
