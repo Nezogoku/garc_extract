@@ -77,7 +77,7 @@ int main(int argc, char *argv[]) {
             removeQuote(argin);
 
             if (argin[0] == '-') {
-                if (argin == "-") {
+                if (argin.size() < 2) {
                     printErr(0, 0, ERR_NO_OPT);
                     continue;
                 }
@@ -94,6 +94,10 @@ int main(int argc, char *argv[]) {
                     else {
                         tabfile = argv[++fi];
                         removeQuote(tabfile);
+                        if (tabfile.empty()) {
+                            printErr(argin.substr(1).c_str(), "file", ERR_NO_ARG);
+                            continue;
+                        }
                     }
                 }
                 opt = argin[1];
