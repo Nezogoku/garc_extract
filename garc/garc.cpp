@@ -203,7 +203,6 @@ int garc::unpackGARC(unsigned char *src, std::string root, std::string name) {
 
         unsigned char *fTmp = 0;
         unsigned fSiz;
-        bool comp = false;
 
         if (!cmpStr(src, "GPRS", 4)) {
             fTmp = src;
@@ -233,7 +232,7 @@ int garc::unpackGARC(unsigned char *src, std::string root, std::string name) {
             if (cmpStr(fTmp, "GIMG", 4)) {
                 setDebug(false);
                 std::string fTab = getTableCSV(fTmp, fSiz);
-                if (!getTableNum()) setTableBIN(fTmp, fSiz);
+                if (!this->amnt_glba) setTableBIN(fTmp, fSiz);
                 setDebug(this->isDebug);
 
                 if (createFile((root + name + inf.fnam + ".csv").c_str(), fTab.c_str(), fTab.length())) {
@@ -242,7 +241,7 @@ int garc::unpackGARC(unsigned char *src, std::string root, std::string name) {
             }
         }
 
-        if (comp) delete[] fTmp;
+        if (fSiz != inf.fdsiz) delete[] fTmp;
     }
 
     this->debugLog.resize(this->debugLog.length() - 1);
