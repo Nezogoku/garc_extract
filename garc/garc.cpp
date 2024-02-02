@@ -230,10 +230,10 @@ int garc::unpackGARC(unsigned char *src, std::string root, std::string name) {
             this->debugLog += formatStr("        FILE_DECOMPRESSED_SIZE: {0X8}\n\n", fSiz);
 
             if (cmpStr(fTmp, "GIMG", 4)) {
-                setDebug(false);
+                //setDebug(false);
                 std::string fTab = getTableCSV(fTmp, fSiz);
                 if (!this->amnt_glba) setTableBIN(fTmp, fSiz);
-                setDebug(this->isDebug);
+                //setDebug(this->isDebug);
 
                 if (createFile((root + name + inf.fnam + ".csv").c_str(), fTab.c_str(), fTab.length())) {
                     fprintf(stdout, "    CREATED sector log file %s\n", (inf.fnam + ".csv").c_str());
@@ -306,13 +306,13 @@ int garc::searchBIN(std::string root, unsigned char *src, const unsigned char *s
     while (src < src_end) {
         unsigned tmp_siz = src_end - src;
         unsigned char *gTmp = 0;
-        unsigned gSiz;
+        unsigned gSiz = 0;
         
         //if (this->isDebug) fprintf(stderr, "ADDRESS 0x%08X\n", src - src_beg);
 
         if (!cmpStr(src, "GPRS", 4)) {
-            gTmp = src;
-            gSiz = tmp_siz;
+            if (cmpStr(src, "GARC", 4)) { gTmp = src; gSiz = tmp_siz; }
+            else tmp_siz = 0;
         }
         else {
             if (this->isDebug) fprintf(stderr, "DECOMPRESS GPRS\n");
@@ -330,8 +330,8 @@ int garc::searchBIN(std::string root, unsigned char *src, const unsigned char *s
             gnum += 1;
         }
 
-        if (tmp_siz != gSiz) delete[] gTmp;
-        tmp_siz += (0x0800 - (tmp_siz % 0x0800)) % 0x0800;
+        if (gTmp && tmp_siz != gSiz) delete[] gTmp;
+        tmp_siz += (!tmp_siz) ? 0x0800 : (0x0800 - (tmp_siz % 0x0800)) % 0x0800;
         src += tmp_siz;
     }
 

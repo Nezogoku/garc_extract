@@ -103,9 +103,8 @@ int lbat::setTableBIN(unsigned char *src, unsigned src_size) {
     };
     auto get_int = [&]() -> unsigned {
         unsigned out = 0;
-        for (int i = 0; src < src_end && i < 4; ++i) {
-            out |= (unsigned)*(src++) << (8 * (3 - i));
-        }
+        for (int i = 0; i < 4; ++i)
+            { out |= (unsigned)*(src++) << (8 * i); }
         return out;
     };
     
