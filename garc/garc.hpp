@@ -21,7 +21,7 @@ class garc : public lzgprs, public lbat {
         int searchLBAT(std::string root, unsigned char *src, const unsigned char *src_end);
         int searchBIN(std::string root, unsigned char *src, const unsigned char *src_end);
 
-        bool isDebug, hasLog;
+        bool hasLog;
         std::string debugLog;
 };
 
