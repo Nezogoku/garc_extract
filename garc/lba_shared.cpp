@@ -21,8 +21,8 @@ int lbat::setTableBIN(const char *bin_filename) {
 }
 int lbat::setTable(const char *filename, int tabletyp) {
     int ret = 0;
-    unsigned char *fdata;
-    unsigned fdata_size;
+    unsigned char *fdata = 0;
+    unsigned fdata_size = 0;
 
     if (!getFileData(filename, fdata, fdata_size)) {
         fprintf(stderr, "Unable to open file\n");
@@ -38,32 +38,29 @@ int lbat::setTable(const char *filename, int tabletyp) {
 
 
 int lbat::setTableCSV(unsigned char *src, unsigned src_size) {
+    reset();
     sstream lbalog(src, src_size);
-    this->table = {};
 
     if (this->isDebug) fprintf(stderr, "    Check LBA for maximum file amount\n");
 
-    lbaSpec tmp;
-    if (!lbalog.getStream(":") && lbalog.ssub != "GIMG_AMNT") return 0;
-    else if (!lbalog.getStream() && (int)lbalog.isub <= 0) return 0;
-    else tmp.glba_amnt = lbalog.isub;
+    this->amnt_glba = lbalog.getUnsigned(":", "GIMG_AMNT");
+    if ((int)this->amnt_glba < 0) { reset(); return 0; }
 
     if (this->isDebug) fprintf(stderr, "    Get LBA table info order\n");
-    int nID = -1, rID = -1, sID = -1, tpos = lbalog.str_cur - lbalog.str_beg;
+    int nID = -1, rID = -1, sID = -1;
     for (int t = 0; t < 3; ++t) {
-        if (!lbalog.getStream(",")) break;
+        std::string tmp = lbalog.getString(",");
+        
+        if (tmp.empty()) break;
         if (this->isDebug) fprintf(stderr, "    Log header: %s\n", lbalog.ssub.c_str());
 
-        if (lbalog.ssub == "FILE_NAME")      nID = t;
-        else if (lbalog.ssub == "FILE_RLBN") rID = t;
-        else if (lbalog.ssub == "FILE_SIZE") sID = t;
-
-        if (this->isDebug) fprintf(stderr, "    Log position: 0x%08X\n", lbalog.str_cur - lbalog.str_beg);
-        if (this->isDebug) fprintf(stderr, "    Log section size: %d\n", lbalog.ssize);
+        if (tmp == "FILE_NAME")      nID = t;
+        else if (tmp == "FILE_RLBN") rID = t;
+        else if (tmp == "FILE_SIZE") sID = t;
     }
 
     if (this->isDebug) fprintf(stderr, "    Check if LBA table info order valid\n");
-    if (nID < 0 && rID < 0 && sID < 0) { nID = 0; rID = 1; sID = 2; lbalog.str_cur = lbalog.str_beg + tpos; }
+    if (nID < 0 && rID < 0 && sID < 0) { nID = 0; rID = 1; sID = 2; }
     if (this->isDebug) fprintf(stderr, "    Name ID %i, Block ID %i, Size ID %i\n", nID, rID, sID);
     if (nID < 0 || rID < 0 || sID < 0) return 0;
 
