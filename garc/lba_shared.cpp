@@ -52,7 +52,7 @@ int lbat::setTableCSV(unsigned char *src, unsigned src_size) {
         std::string tmp = lbalog.getString(",");
         
         if (tmp.empty()) break;
-        if (this->isDebug) fprintf(stderr, "    Log header: %s\n", lbalog.ssub.c_str());
+        if (this->isDebug) fprintf(stderr, "    Log header: %s\n", tmp.c_str());
         
              if (tmp == "FILE_NAME") nID = t++;
         else if (tmp == "FILE_RLBN") rID = t++;
@@ -70,25 +70,23 @@ int lbat::setTableCSV(unsigned char *src, unsigned src_size) {
     if (this->isDebug) fprintf(stderr, "    Search at position 0x%08X\n", lbalog.tellPos());
     for (int m = 0; m < this->amnt_glba; ++m) {
         for (int t = 0; t < 3; ++t) {
-            switch(t) {
-                case nID:
-                    this->info[m].info_name = lbalog.getString(",");
-                    if (this->info[m].info_name.empty()) { this->amnt_glba = m; return 0; }
-                    else break;
-                case rID:
-                    this->info[m].info_rlbn = lbalog.getUnsigned(",");
-                    if ((int)this->info[m].info_rlbn < 0) { this->amnt_glba = m; return 0; }
-                    else break;
-                case sID:
-                    this->info[m].info_size = lbalog.getUnsigned(",");
-                    if ((int)this->info[m].info_size < 0) { this->amnt_glba = m; return 0; }
-                    else break;
+            if (t == nID) {
+                this->info[m].info_name = lbalog.getString(",");
+                if (this->info[m].info_name.empty()) { this->amnt_glba = m; return 0; }
+            }
+            else if (t == rID) {
+                this->info[m].info_rlbn = lbalog.getUnsigned(",");
+                if ((int)this->info[m].info_rlbn < 0) { this->amnt_glba = m; return 0; }
+            }
+            else if (t == sID) {
+                this->info[m].info_size = lbalog.getUnsigned(",");
+                if ((int)this->info[m].info_size < 0) { this->amnt_glba = m; return 0; }
             }
         }
 
         if (this->isDebug) fprintf(stderr, "        Set %-*s with size 0x%08X to entry %d\n",
-                                           27, this->info[m].file_name.c_str(),
-                                           this->info[m].file_size,
+                                           27, this->info[m].info_name.c_str(),
+                                           this->info[m].info_size,
                                            m);
     }
 
@@ -102,7 +100,7 @@ int lbat::setTableBIN(unsigned char *src, unsigned src_size) {
     auto cmp_str = [&](const char *in1, int length) -> bool {
         while ((*(src++) == (unsigned char)(*(in1++))) && --length);
         return !length;
-    }
+    };
     auto get_int = [&]() -> unsigned {
         unsigned out = 0;
         for (int i = 0; src < src_end && i < 4; ++i) {
@@ -121,14 +119,14 @@ int lbat::setTableBIN(unsigned char *src, unsigned src_size) {
 
     if (this->isDebug) fprintf(stderr, "    Update LBA table\n");
     for (int m = 0, tmp; src < src_end && m < this->amnt_glba; ++m) {
-        this->info[m].file_name = (char*)(src_start + get_int());
-        this->info[m].file_rlbn = get_int();
+        this->info[m].info_name = (char*)(src_start + get_int());
+        this->info[m].info_rlbn = get_int();
         src += 4;
-        this->info[m].file_size = get_int();
+        this->info[m].info_size = get_int();
 
         if (this->isDebug) fprintf(stderr, "        Set %-*s with size 0x%08X to entry %d\n",
-                                           27, this->info[m].file_name.c_str(),
-                                           this->info[m].file_size,
+                                           27, this->info[m].info_name.c_str(),
+                                           this->info[m].info_size,
                                            m);
     }
 
@@ -147,9 +145,9 @@ std::string lbat::getTableCSV(unsigned char *src, unsigned src_size) {
         gimg += "GIMG_AMNT: " + std::to_string(this->amnt_glba) + "\n";
         gimg += "FILE_NAME, FILE_RLBN, FILE_SIZE\n";
         for (int g = 0; g < this->amnt_glba; ++g) {
-            gimg += this->info[g].file_name + ", ";
-            gimg += std::to_string(this->info[g].file_rlbn) + ", ";
-            gimg += std::to_string(this->info[g].file_size) + "\n";
+            gimg += this->info[g].info_name + ", ";
+            gimg += std::to_string(this->info[g].info_rlbn) + ", ";
+            gimg += std::to_string(this->info[g].info_size) + "\n";
         }
     }
 
