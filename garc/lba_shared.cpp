@@ -11,7 +11,6 @@ void lbat::reset() {
 }
 
 
-
 int lbat::setTableCSV(const char *csv_filename) {
     if (this->isDebug) fprintf(stderr, "Attempt to open CSV file\n");
     return setTable(csv_filename, 1);
