@@ -62,7 +62,6 @@ int main(int argc, char *argv[]) {
         printOpts(prgm.c_str());
     }
     else {
-        bool debug = false, log = false;
         std::string binfile, tabfile;
         garc gfile();
         for (int fi = 1, tabtyp; fi < argc; ++fi) {
@@ -112,7 +111,6 @@ int main(int argc, char *argv[]) {
 
             switch(opt) {
                 case 0:
-                    gfile.setDebugging(debug, log);
                     gfile.searchFile(binfile, tabfile, tabtyp);
                     continue;
 
@@ -121,12 +119,12 @@ int main(int argc, char *argv[]) {
                     break;
 
                 case 'd':               // DEBUG MODE
-                    debug = true;
+                    gfile.setDebug(true);
                     fprintf(stderr, "Debug mode now active\n");
                     continue;
 
                 case 'L':               // OUTPUT LOG FILE
-                    log = true;
+                    gfile.setLog(true);
                     fprintf(stderr, "Log mode now active\n");
                     continue;
 
