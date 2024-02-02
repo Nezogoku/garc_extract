@@ -361,8 +361,7 @@ void garc::searchFile(std::string filename, std::string tablename, int tablet) {
         fprintf(stderr, "Unable to create root folder\n");
     }
     else {
-        setDebug(this->isDebug);
-        if (!getTableNum() && ((!tablet && tablename.empty()) || (!setTable(tablename.c_str(), tablet)))) {
+        if (getTableNum() < 1 && ((!tablet && tablename.empty()) || !setTable(tablename.c_str(), tablet))) {
             ret = searchBIN(root, fdat, fdat + fsiz);
         }
         else ret = searchLBAT(root, fdat, fdat + fsiz);
