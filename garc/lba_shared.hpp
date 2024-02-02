@@ -5,7 +5,7 @@
 
 class lbat {
     public:
-        lbat() : reset() {}
+        lbat() { reset(); }
         ~lbat() { reset(); }
         
         std::string getTableCSV(unsigned char *src, unsigned src_size);
