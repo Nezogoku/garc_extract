@@ -21,7 +21,6 @@ class lbat {
         std::string getTableCSV(unsigned char *src, unsigned src_size);
 
     protected:
-        unsigned getLeInt(unsigned char *&in, int length);
         int setTable(const char *filename, int tabletyp);
         
         bool isDebug;
