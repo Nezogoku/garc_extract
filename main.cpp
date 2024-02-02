@@ -63,7 +63,7 @@ int main(int argc, char *argv[]) {
     }
     else {
         std::string binfile, tabfile;
-        garc gfile();
+        garc gfile;
         for (int fi = 1, tabtyp; fi < argc; ++fi) {
             if (!binfile.empty()) {
                 binfile.clear();
