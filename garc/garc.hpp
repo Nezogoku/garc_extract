@@ -8,7 +8,7 @@ class garc : public lzgprs, public lbat {
     public:
         garc(bool debug = false, bool log = false) : isDebug(debug), hasLog(log) {}
 
-        void setDebugging(bool debug, bool log) { this->isDebug = debug; this->hasLog = log; }
+        void setLog(bool log) { this->hasLog = log; }
         void searchFile(std::string filename);
         void searchFile(std::string filename, std::string tablename, int tablet);
 
