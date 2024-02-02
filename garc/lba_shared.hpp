@@ -14,10 +14,6 @@ class lbat {
         int setTableBIN(unsigned char *src, unsigned src_size);
         int setTableBIN(const char *bin_filename);
 
-        int getTableNum() { return table.glba_amnt; }
-        std::string getTableEntName(int id) { return table.glba_info[id].file_name; }
-        unsigned getTableEntRlbn(int id) { return table.glba_info[id].file_rlbn; }
-        unsigned getTableEntSize(int id) { return table.glba_info[id].file_size; }
         std::string getTableCSV(unsigned char *src, unsigned src_size);
 
     protected:
