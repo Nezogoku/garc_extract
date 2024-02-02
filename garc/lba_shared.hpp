@@ -20,10 +20,10 @@ class lbat {
         bool isDebug;
         unsigned amnt_glba;
         struct lbainf {
-            std::string file_name;  // Name of file
-            unsigned file_rlbn;     // Relative logical block number of file
-            //unsigned file_unkn;   // Unknown
-            unsigned file_size;     // Size of file
+            std::string info_name;  // Name of file
+            unsigned info_rlbn;     // Relative logical block number of file
+            //unsigned info_unkn;   // Unknown
+            unsigned info_size;     // Size of file
         } *info;
 
     private:
