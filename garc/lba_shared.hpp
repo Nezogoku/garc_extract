@@ -9,12 +9,12 @@ class lbat {
         ~lbat() : reset() {}
 
         void setDebug(bool debug) { this->isDebug = debug; }
+        
+        std::string getTableCSV(unsigned char *src, unsigned src_size);
         int setTableCSV(unsigned char *src, unsigned src_size);
         int setTableCSV(const char *csv_filename);
         int setTableBIN(unsigned char *src, unsigned src_size);
         int setTableBIN(const char *bin_filename);
-
-        std::string getTableCSV(unsigned char *src, unsigned src_size);
 
     protected:
         int setTable(const char *filename, int tabletyp);
