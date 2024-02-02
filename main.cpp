@@ -64,7 +64,7 @@ int main(int argc, char *argv[]) {
     else {
         bool debug = false, log = false;
         std::string binfile, tabfile;
-        garc gfile(debug, log);
+        garc gfile();
         for (int fi = 1, tabtyp; fi < argc; ++fi) {
             if (!binfile.empty()) {
                 binfile.clear();
