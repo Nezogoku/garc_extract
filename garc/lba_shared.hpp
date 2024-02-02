@@ -5,7 +5,7 @@
 
 class lbat {
     public:
-        lbat() : reset() {}
+        lbat() : reset() { this->isDebug = false; }
         ~lbat() : reset() {}
 
         void setDebug(bool debug) { this->isDebug = debug; }
