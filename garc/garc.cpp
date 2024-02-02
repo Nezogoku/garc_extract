@@ -253,12 +253,11 @@ int garc::unpackGARC(unsigned char *src, std::string root, std::string name) {
 int garc::searchLBAT(std::string root, unsigned char *src, const unsigned char *src_end) {
     if (this->isDebug) fprintf(stderr, "Extract with LBA table\n");
 
-    for (int a = 0; a < getTableNum(); ++a) {
-        std::string tmp_nam = getTableEntName(a), tmp_ext;
-        unsigned tmp_siz = getTableEntSize(a), gSiz = 0;
-        unsigned char *tmp_dat = src + (getTableEntRlbn(a) * 0x0800),
+    for (int a = 0; a < this->amnt_glba; ++a) {
+        std::string tmp_nam = this->info[a].info_name, tmp_ext;
+        unsigned tmp_siz = this->info[a].info_size, gSiz = 0;
+        unsigned char *tmp_dat = src + (this->info[a].info_rlbn * 0x0800),
                       *gTmp = 0;
-        bool comp = false;
 
         if (tmp_dat >= src_end || (tmp_dat + tmp_siz) > src_end) {
             fprintf(stderr, "Entry outside range of file\n");
@@ -293,9 +292,9 @@ int garc::searchLBAT(std::string root, unsigned char *src, const unsigned char *
             this->debugLog += formatStr("    FILE_DECOMPRESSED_SIZE: {0X8}\n\n", gSiz);
         }
 
-        if (comp) delete[] gTmp;
+        if (tmp_siz != gSiz) delete[] gTmp;
     }
-    resetTable();
+    reset();
 
     return 1;
 }
@@ -309,11 +308,10 @@ int garc::searchBIN(std::string root, unsigned char *src, const unsigned char *s
         unsigned tmp_siz = src_end - src;
         unsigned char *gTmp = 0;
         unsigned gSiz;
-        bool comp = false;
         
         //if (this->isDebug) fprintf(stderr, "ADDRESS 0x%08X\n", src - src_beg);
 
-        if (!cmpStr(src, "GPRS", 4) || !cmpStr(src + 9, "GARC", 4)) {
+        if (!cmpStr(src, "GPRS", 4)) {
             gTmp = src;
             gSiz = tmp_siz;
         }
@@ -322,8 +320,7 @@ int garc::searchBIN(std::string root, unsigned char *src, const unsigned char *s
             tmp_siz = decompress(src, tmp_siz, gTmp, gSiz);
         }
 
-        if (!gTmp || !cmpStr(gTmp, "GARC", 4)) tmp_siz = 0;
-        else {
+        if (gTmp && cmpStr(gTmp, "GARC", 4)) {
             fprintf(stdout, "UNPACK GARC\n");
             std::string subroot = (!gnum && (src + tmp_siz + 0x10) >= src_end) ? "" :
                                   formatStr("garc_{0D3}.arc", gnum);
@@ -334,8 +331,8 @@ int garc::searchBIN(std::string root, unsigned char *src, const unsigned char *s
             gnum += 1;
         }
 
-        if (comp) delete[] gTmp;
-        tmp_siz += (!tmp_siz) ? 0x0800 : (0x0800 - (tmp_siz % 0x0800)) % 0x0800;
+        if (tmp_siz != gSiz) delete[] gTmp;
+        tmp_siz += (0x0800 - (tmp_siz % 0x0800)) % 0x0800;
         src += tmp_siz;
     }
 
@@ -361,7 +358,7 @@ void garc::searchFile(std::string filename, std::string tablename, int tablet) {
         fprintf(stderr, "Unable to create root folder\n");
     }
     else {
-        if (getTableNum() < 1 && ((!tablet && tablename.empty()) || !setTable(tablename.c_str(), tablet))) {
+        if (!this->amnt_glba && ((!tablet && tablename.empty()) || !setTable(tablename.c_str(), tablet))) {
             ret = searchBIN(root, fdat, fdat + fsiz);
         }
         else ret = searchLBAT(root, fdat, fdat + fsiz);

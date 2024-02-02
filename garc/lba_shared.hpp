@@ -17,7 +17,7 @@ class lbat {
         int setTableBIN(const char *bin_filename);
 
     protected:
-        int getTableNum() { return (int)this->amnt_glba; }
+        void reset();
         int setTable(const char *filename, int tabletyp);
         
         bool isDebug;
@@ -28,9 +28,6 @@ class lbat {
             //unsigned info_unkn;   // Unknown
             unsigned info_size;     // Size of file
         } *info = 0;
-
-    private:
-        void reset();
 };
 
 
