@@ -6,7 +6,7 @@
 
 class garc : public lzgprs, public lbat {
     public:
-        garc(bool debug = false, bool log = false) : isDebug(debug), hasLog(log) {}
+        garc() { this->isDebug = false; this->hasLog = false; }
 
         void setLog(bool log) { this->hasLog = log; }
         void searchFile(std::string filename);
