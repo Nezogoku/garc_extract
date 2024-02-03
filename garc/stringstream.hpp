@@ -14,7 +14,7 @@ struct sstream {
     sstream(const sstream &s)
         { copy(s); }
     sstream(sstream &&s) :
-        sstream{s} { s.~sstream(); }
+        sstream{s} {}
     ~sstream() { reset(); }
 
     sstream& operator=(const sstream &s) { copy(s); return *this; }
