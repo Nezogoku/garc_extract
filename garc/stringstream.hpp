@@ -9,7 +9,7 @@ struct sstream {
         str_beg(""), ssub(""), isub(-1), str_pos(0) {}
     sstream(const std::string str) :
         str_beg(str), ssub(""), isub(-1), str_pos(0) {}
-    sstream(const unsigned char *str = 0, const unsigned siz = 0) :
+    sstream(const unsigned char *str, const unsigned siz) :
         str_beg(std::string((char*)str, siz)), ssub(""), isub(-1), str_pos(0) {}
     sstream(const sstream &s)
         { copy(s); }
@@ -43,7 +43,9 @@ struct sstream {
         if (pos0 == std::string::npos) { reset(); return 0; }
         
         if (delim) {
+            int tmp = get_whitespace(str_beg, pos0);
             pos1 = str_beg.find(delim, str_pos);
+            if (tmp < pos1) pos1 = tmp;
         }
         else {
             while ((pos1 = get_whitespace(str_beg, pos1)) != std::string::npos) {
