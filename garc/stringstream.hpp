@@ -18,7 +18,7 @@ struct sstream {
     ~sstream() { reset(); }
 
     sstream& operator=(const sstream &s) { copy(s); return *this; }
-    sstream& operator=(sstream &&s) { copy((const sstream)s); s.~sstream(); return *this; }
+    sstream& operator=(sstream &&s) { copy((const sstream)s); return *this; }
     
     int tellPos() { return str_pos; }
     
