@@ -10,7 +10,7 @@ struct sstream {
     sstream(const std::string str) :
         str_beg(str), ssub(""), isub(-1), str_pos(0) {}
     sstream(const unsigned char *str, const unsigned siz) :
-        str_beg(std::string((char*)str, siz)), ssub(""), isub(-1), str_pos(0) {}
+        str_beg(std::string((const char*)str, siz)), ssub(""), isub(-1), str_pos(0) {}
     sstream(const sstream &s)
         { copy(s); }
     sstream(sstream &&s) :
