@@ -5,20 +5,18 @@
 
 ///Struct for custom stringstream
 struct sstream {
+    ~sstream() = default;
     sstream() :
         str_beg(""), ssub(""), isub(-1), str_pos(0) {}
     sstream(const std::string str) :
         str_beg(str), ssub(""), isub(-1), str_pos(0) {}
     sstream(const unsigned char *str, const unsigned siz) :
         str_beg(std::string((const char*)str, siz)), ssub(""), isub(-1), str_pos(0) {}
-    sstream(const sstream &s)
-        { copy(s); }
-    sstream(sstream &&s) :
-        sstream{s} {}
-    ~sstream() { reset(); }
+    sstream(const sstream &s) = default;
+    sstream(sstream &&s) = default;
 
-    sstream& operator=(const sstream &s) { copy(s); return *this; }
-    sstream& operator=(sstream &&s) { copy((const sstream)s); return *this; }
+    sstream& operator=(const sstream &s) = default;
+    sstream& operator=(sstream &&s) = default;
     
     int tellPos() { return str_pos; }
     
@@ -113,14 +111,6 @@ struct sstream {
             if (!str_beg.empty()) str_beg.clear();
             if (!ssub.empty()) ssub.clear();
             str_pos = 0; isub = -1;
-        }
-        
-        void copy(const sstream &s) {
-            reset();
-            str_beg = s.str_beg;
-            ssub = s.ssub;
-            isub = s.isub;
-            str_pos = s.str_pos;
         }
 };
 
